@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Predator's Path — Event Planner</title>
+  <style>
+    :root{ --bg:#0e0f13; --card:#161922; --muted:#8b93a7; --txt:#e7ecf3; --accent:#ff4444; --warn:#ffb86b; }
+    *{box-sizing:border-box}
+    body{margin:0;background:#0b0c10;color:var(--txt);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    header{position:sticky;top:0;z-index:10;background:rgba(14,15,19,.7);backdrop-filter:blur(8px);border-bottom:1px solid #222834}
+    .wrap{max-width:1000px;margin:0 auto;padding:18px}
+    h1{margin:0;font-size:22px;letter-spacing:.2px;color:var(--accent)}
+
+    .summary{display:grid;gap:12px;grid-template-columns:2fr 1fr 1fr 1fr;align-items:stretch;margin:14px 0}
+    .card{background:var(--card);border:1px solid #232835;border-radius:16px;padding:14px 16px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+    .card h3{margin:0 0 8px 0;font-weight:600;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
+    .card .value{font-size:28px;font-weight:800}
+    .value small{font-weight:600;color:var(--muted);font-size:13px}
+    .progress{height:12px;background:#0f1320;border:1px solid #273047;border-radius:999px;overflow:hidden}
+    .progress > div{height:100%;background:linear-gradient(90deg,#ff4444,#ff8800);width:0%;transition:width .25s ease}
+
+    .controls{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
+    .controls input[type="number"], .controls select{background:#0f1320;border:1px solid #273047;border-radius:10px;color:var(--txt);padding:10px 12px;width:100%}
+    label span{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+
+    .section{margin:20px 0}
+    .panel{background:var(--card);border:1px solid #232835;border-radius:16px;padding:16px}
+    .panel h3{margin:0 0 12px 0;font-size:16px;color:var(--accent)}
+
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .muted{color:var(--muted);font-size:12px}
+    input[readonly]{background:#1a1d28;color:#b8bccf;border:1px solid #273047}
+
+    @media (max-width:900px){ .summary{grid-template-columns:1fr 1fr} .controls{grid-template-columns:1fr} .grid2,.grid3{grid-template-columns:1fr} }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Predator's Path — Event Planner</h1>
+      <div class="summary">
+        <div class="card">
+          <h3>Goal</h3>
+          <div>
+            <select id="goalSelect" style="width:100%">
+              <option value="96750">96,750 — Predator 5★ Soul</option>
+              <option value="96750">96,750 — Eternal Soulstone</option>
+            </select>
+          </div>
+          <div class="muted">Or override with a custom target below.</div>
+        </div>
+        <div class="card">
+          <h3>Coins Needed</h3>
+          <div class="value"><span id="pointsNeeded">96,750</span></div>
+          <div class="progress" style="margin-top:8px"><div id="progressBar"></div></div>
+        </div>
+        <div class="card">
+          <h3>Coins Planned</h3>
+          <div class="value" id="currentPoints">0</div>
+        </div>
+        <div class="card">
+          <h3>Remaining</h3>
+          <div class="value" id="remainingPoints">96,750</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <label>
+          <span>Custom Target (optional)</span>
+          <input type="number" id="targetInput" placeholder="e.g., 96750" min="0" />
+        </label>
+        <label>
+          <span>Current Coins Already Earned</span>
+          <input type="number" id="alreadyCoins" placeholder="e.g., 4000" min="0" />
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="section panel">
+      <h3>Energy Plan</h3>
+      <div class="grid3">
+        <label>
+          <span>10 Hard — Energy Planned</span>
+          <input type="number" id="energy10H" min="0" placeholder="e.g., 5000" />
+        </label>
+        <label>
+          <span>Coins per Energy (10H)</span>
+          <input type="text" id="cpe10H" value="1.92 × Energy" readonly />
+        </label>
+        <label>
+          <span>Subtotal Coins (10H)</span>
+          <input type="text" id="coins10H" value="0 × 1.92 = 0" readonly />
+        </label>
+      </div>
+      <div class="grid3" style="margin-top:10px">
+        <label>
+          <span>20 Normal — Energy Planned</span>
+          <input type="number" id="energy20N" min="0" placeholder="e.g., 5000" />
+        </label>
+        <label>
+          <span>Coins per Energy (20N)</span>
+          <input type="text" id="cpe20N" value="2.16 × Energy" readonly />
+        </label>
+        <label>
+          <span>Subtotal Coins (20N)</span>
+          <input type="text" id="coins20N" value="0 × 2.16 = 0" readonly />
+        </label>
+      </div>
+      <p class="muted" style="margin-top:8px">Multipliers use standard dungeon drop-rate math.</p>
+    </div>
+
+    <div class="section panel">
+      <h3>Shards You Plan to Open</h3>
+      <div class="grid2">
+        <label>
+          <span>Mystery Shards ×</span>
+          <input type="number" id="mysteryQty" min="0" placeholder="0" />
+        </label>
+        <label>
+          <span>Ancient Shards ×</span>
+          <input type="number" id="ancientQty" min="0" placeholder="0" />
+        </label>
+      </div>
+      <div class="grid2" style="margin-top:10px">
+        <label>
+          <span>Void Shards ×</span>
+          <input type="number" id="voidQty" min="0" placeholder="0" />
+        </label>
+        <label>
+          <span>Primal Shards ×</span>
+          <input type="number" id="primalQty" min="0" placeholder="0" />
+        </label>
+      </div>
+      <div class="grid2" style="margin-top:10px">
+        <label>
+          <span>Sacred Shards ×</span>
+          <input type="number" id="sacredQty" min="0" placeholder="0" />
+        </label>
+        <div></div>
+      </div>
+      <p class="muted">Shard values: Mystery 3 • Ancient 300 • Void 750 • Primal 1,800 • Sacred 4,500.</p>
+    </div>
+
+    <div class="section panel">
+      <h3>Milestones</h3>
+      <div id="milestones"></div>
+    </div>
+  </main>
+
+  <script>
+    const $ = (s,c=document)=>c.querySelector(s);
+    const num = v => Number(v||0) || 0;
+    const fmt = n => n.toLocaleString(undefined,{maximumFractionDigits:0});
+
+    const MILESTONES = [
+      { name: 'Predator 5★ Soul', pts: 96750 },
+      { name: 'Eternal Soulstone', pts: 96750 },
+    ];
+
+    const SHARD_POINTS = { mystery:3, ancient:300, void:750, primal:1800, sacred:4500 };
+    const CPE_10H = 1.92;
+    const CPE_20N = 2.16;
+
+    const els = {
+      goalSelect: $('#goalSelect'),
+      pointsNeeded: $('#pointsNeeded'),
+      currentPoints: $('#currentPoints'),
+      remainingPoints: $('#remainingPoints'),
+      progressBar: $('#progressBar'),
+      targetInput: $('#targetInput'),
+      alreadyCoins: $('#alreadyCoins'),
+      energy10H: $('#energy10H'), coins10H: $('#coins10H'),
+      energy20N: $('#energy20N'), coins20N: $('#coins20N'),
+      mysteryQty: $('#mysteryQty'), ancientQty: $('#ancientQty'), voidQty: $('#voidQty'), primalQty
