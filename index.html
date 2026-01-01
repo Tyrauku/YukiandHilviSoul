@@ -1,178 +1,142 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Predator's Path — Event Planner</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Heroes Path Calculator (Snow Coins)</title>
   <style>
-    :root{ --bg:#0e0f13; --card:#161922; --muted:#8b93a7; --txt:#e7ecf3; --accent:#ff4444; --warn:#ffb86b; }
+    :root{
+      --bg:#0b0f14; --card:#121826; --card2:#0f1522; --text:#e6edf7; --muted:#9fb0c8;
+      --line:#1f2a3d; --good:#35d07f; --warn:#ffcc66; --bad:#ff5c7a; --accent:#7aa7ff;
+    }
     *{box-sizing:border-box}
-    body{margin:0;background:#0b0c10;color:var(--txt);font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-    header{position:sticky;top:0;z-index:10;background:rgba(14,15,19,.7);backdrop-filter:blur(8px);border-bottom:1px solid #222834}
-    .wrap{max-width:1000px;margin:0 auto;padding:18px}
-    h1{margin:0;font-size:22px;letter-spacing:.2px;color:var(--accent)}
-
-    .summary{display:grid;gap:12px;grid-template-columns:2fr 1fr 1fr 1fr;align-items:stretch;margin:14px 0}
-    .card{background:var(--card);border:1px solid #232835;border-radius:16px;padding:14px 16px;box-shadow:0 6px 18px rgba(0,0,0,.25)}
-    .card h3{margin:0 0 8px 0;font-weight:600;font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}
-    .card .value{font-size:28px;font-weight:800}
-    .value small{font-weight:600;color:var(--muted);font-size:13px}
-    .progress{height:12px;background:#0f1320;border:1px solid #273047;border-radius:999px;overflow:hidden}
-    .progress > div{height:100%;background:linear-gradient(90deg,#ff4444,#ff8800);width:0%;transition:width .25s ease}
-
-    .controls{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
-    .controls input[type="number"], .controls select{background:#0f1320;border:1px solid #273047;border-radius:10px;color:var(--txt);padding:10px 12px;width:100%}
-    label span{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
-
-    .section{margin:20px 0}
-    .panel{background:var(--card);border:1px solid #232835;border-radius:16px;padding:16px}
-    .panel h3{margin:0 0 12px 0;font-size:16px;color:var(--accent)}
-
-    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
-    .muted{color:var(--muted);font-size:12px}
-    input[readonly]{background:#1a1d28;color:#b8bccf;border:1px solid #273047}
-
-    @media (max-width:900px){ .summary{grid-template-columns:1fr 1fr} .controls{grid-template-columns:1fr} .grid2,.grid3{grid-template-columns:1fr} }
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; background:var(--bg); color:var(--text)}
+    .wrap{max-width:980px; margin:20px auto; padding:0 14px}
+    h1{font-size:20px; margin:0 0 12px}
+    .grid{display:grid; grid-template-columns:repeat(12,1fr); gap:12px}
+    .card{background:linear-gradient(180deg,var(--card),var(--card2)); border:1px solid var(--line);
+      border-radius:14px; padding:14px}
+    .card h2{font-size:14px; margin:0 0 10px; color:var(--muted); font-weight:650}
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    .field{flex:1 1 160px}
+    label{display:block; font-size:12px; color:var(--muted); margin:0 0 6px}
+    input[type="number"]{
+      width:100%; padding:10px; border-radius:10px; border:1px solid var(--line);
+      background:#0b1220; color:var(--text);
+    }
+    .btnrow{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    button{
+      padding:10px 12px; border-radius:10px; border:1px solid var(--line);
+      background:#0b1220; color:var(--text); cursor:pointer;
+    }
+    .pill{display:inline-flex; padding:8px 10px; border-radius:999px;
+      border:1px solid var(--line); background:#0b1220; color:var(--muted); font-size:12px}
+    .kpi{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+    .k{border:1px solid var(--line); background:#0b1220; border-radius:12px; padding:12px}
+    .k .t{font-size:12px; color:var(--muted)}
+    .k .v{font-size:18px; margin-top:6px; font-weight:750}
+    .bar{height:10px; background:#0b1220; border:1px solid var(--line); border-radius:999px; overflow:hidden}
+    .fill{height:100%; width:0%; background:linear-gradient(90deg,var(--accent),#9b7aff)}
+    table{width:100%; border-collapse:collapse; margin-top:10px}
+    th,td{padding:10px 8px; border-bottom:1px solid var(--line); text-align:right; font-size:13px}
+    th:first-child, td:first-child{text-align:left}
+    .subtle{color:var(--muted); font-size:12px; margin-top:8px}
+    .ok{color:var(--good)} .no{color:var(--bad)} .mid{color:var(--warn)}
+    .col-6{grid-column:span 6}
+    .col-12{grid-column:span 12}
+    @media (max-width:860px){ .col-6{grid-column:span 12} .kpi{grid-template-columns:1fr} }
   </style>
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <h1>Predator's Path — Event Planner</h1>
-      <div class="summary">
-        <div class="card">
-          <h3>Goal</h3>
-          <div>
-            <select id="goalSelect" style="width:100%">
-              <option value="96750">96,750 — Predator 5★ Soul</option>
-              <option value="96750">96,750 — Eternal Soulstone</option>
-            </select>
-          </div>
-          <div class="muted">Or override with a custom target below.</div>
-        </div>
-        <div class="card">
-          <h3>Coins Needed</h3>
-          <div class="value"><span id="pointsNeeded">96,750</span></div>
-          <div class="progress" style="margin-top:8px"><div id="progressBar"></div></div>
-        </div>
-        <div class="card">
-          <h3>Coins Planned</h3>
-          <div class="value" id="currentPoints">0</div>
-        </div>
-        <div class="card">
-          <h3>Remaining</h3>
-          <div class="value" id="remainingPoints">96,750</div>
-        </div>
-      </div>
+<div class="wrap">
+<h1>Heroes Path Calculator — Snow Coins</h1>
 
-      <div class="controls">
-        <label>
-          <span>Custom Target (optional)</span>
-          <input type="number" id="targetInput" placeholder="e.g., 96750" min="0" />
-        </label>
-        <label>
-          <span>Current Coins Already Earned</span>
-          <input type="number" id="alreadyCoins" placeholder="e.g., 4000" min="0" />
-        </label>
-      </div>
+<div class="grid">
+
+<!-- SETTINGS -->
+<div class="card col-6">
+  <h2>Targets & Rates</h2>
+  <div class="row">
+    <div class="field">
+      <label>Target: One Soul (Snow Coins)</label>
+      <input id="targetOne" type="number" value="74250">
     </div>
-  </header>
-
-  <main class="wrap">
-    <div class="section panel">
-      <h3>Energy Plan</h3>
-      <div class="grid3">
-        <label>
-          <span>10 Hard — Energy Planned</span>
-          <input type="number" id="energy10H" min="0" placeholder="e.g., 5000" />
-        </label>
-        <label>
-          <span>Coins per Energy (10H)</span>
-          <input type="text" id="cpe10H" value="1.92 × Energy" readonly />
-        </label>
-        <label>
-          <span>Subtotal Coins (10H)</span>
-          <input type="text" id="coins10H" value="0 × 1.92 = 0" readonly />
-        </label>
-      </div>
-      <div class="grid3" style="margin-top:10px">
-        <label>
-          <span>20 Normal — Energy Planned</span>
-          <input type="number" id="energy20N" min="0" placeholder="e.g., 5000" />
-        </label>
-        <label>
-          <span>Coins per Energy (20N)</span>
-          <input type="text" id="cpe20N" value="2.16 × Energy" readonly />
-        </label>
-        <label>
-          <span>Subtotal Coins (20N)</span>
-          <input type="text" id="coins20N" value="0 × 2.16 = 0" readonly />
-        </label>
-      </div>
-      <p class="muted" style="margin-top:8px">Multipliers use standard dungeon drop-rate math.</p>
+    <div class="field">
+      <label>Target: Both Souls (Snow Coins)</label>
+      <input id="targetBoth" type="number" value="141000">
     </div>
-
-    <div class="section panel">
-      <h3>Shards You Plan to Open</h3>
-      <div class="grid2">
-        <label>
-          <span>Mystery Shards ×</span>
-          <input type="number" id="mysteryQty" min="0" placeholder="0" />
-        </label>
-        <label>
-          <span>Ancient Shards ×</span>
-          <input type="number" id="ancientQty" min="0" placeholder="0" />
-        </label>
-      </div>
-      <div class="grid2" style="margin-top:10px">
-        <label>
-          <span>Void Shards ×</span>
-          <input type="number" id="voidQty" min="0" placeholder="0" />
-        </label>
-        <label>
-          <span>Primal Shards ×</span>
-          <input type="number" id="primalQty" min="0" placeholder="0" />
-        </label>
-      </div>
-      <div class="grid2" style="margin-top:10px">
-        <label>
-          <span>Sacred Shards ×</span>
-          <input type="number" id="sacredQty" min="0" placeholder="0" />
-        </label>
-        <div></div>
-      </div>
-      <p class="muted">Shard values: Mystery 3 • Ancient 300 • Void 750 • Primal 1,800 • Sacred 4,500.</p>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <div class="field">
+      <label>Champion Training (Snow Coins per Energy)</label>
+      <input id="ptsPerEnergy" type="number" value="4.9" step="0.1">
     </div>
-
-    <div class="section panel">
-      <h3>Milestones</h3>
-      <div id="milestones"></div>
+    <div class="field">
+      <label>Extra Manual Snow Coins</label>
+      <input id="manualPts" type="number" value="0">
     </div>
-  </main>
+  </div>
+</div>
 
-  <script>
-    const $ = (s,c=document)=>c.querySelector(s);
-    const num = v => Number(v||0) || 0;
-    const fmt = n => n.toLocaleString(undefined,{maximumFractionDigits:0});
+<!-- INPUTS -->
+<div class="card col-6">
+  <h2>Player Inputs</h2>
+  <div class="row">
+    <div class="field"><label>Mystery Shards</label><input id="mystery" type="number"></div>
+    <div class="field"><label>Ancient Shards</label><input id="ancient" type="number"></div>
+    <div class="field"><label>Void Shards</label><input id="void" type="number"></div>
+  </div>
+  <div class="row" style="margin-top:10px">
+    <div class="field"><label>Primal Shards</label><input id="primal" type="number"></div>
+    <div class="field"><label>Sacred Shards</label><input id="sacred" type="number"></div>
+    <div class="field"><label>Energy Spent (Training)</label><input id="energy" type="number"></div>
+  </div>
+</div>
 
-    const MILESTONES = [
-      { name: 'Predator 5★ Soul', pts: 96750 },
-      { name: 'Eternal Soulstone', pts: 96750 },
-    ];
+<!-- SUMMARY -->
+<div class="card col-12">
+  <h2>Summary</h2>
+  <div class="kpi">
+    <div class="k">
+      <div class="t">Total Snow Coins</div>
+      <div class="v" id="totalPts">0</div>
+    </div>
+    <div class="k">
+      <div class="t">One Soul Progress</div>
+      <div class="v" id="pOne">0%</div>
+      <div class="bar"><div class="fill" id="barOne"></div></div>
+    </div>
+    <div class="k">
+      <div class="t">Both Souls Progress</div>
+      <div class="v" id="pBoth">0%</div>
+      <div class="bar"><div class="fill" id="barBoth"></div></div>
+    </div>
+  </div>
+</div>
 
-    const SHARD_POINTS = { mystery:3, ancient:300, void:750, primal:1800, sacred:4500 };
-    const CPE_10H = 1.92;
-    const CPE_20N = 2.16;
+</div>
+</div>
 
-    const els = {
-      goalSelect: $('#goalSelect'),
-      pointsNeeded: $('#pointsNeeded'),
-      currentPoints: $('#currentPoints'),
-      remainingPoints: $('#remainingPoints'),
-      progressBar: $('#progressBar'),
-      targetInput: $('#targetInput'),
-      alreadyCoins: $('#alreadyCoins'),
-      energy10H: $('#energy10H'), coins10H: $('#coins10H'),
-      energy20N: $('#energy20N'), coins20N: $('#coins20N'),
-      mysteryQty: $('#mysteryQty'), ancientQty: $('#ancientQty'), voidQty: $('#voidQty'), primalQty
+<script>
+const $ = id => document.getElementById(id);
+const vals = {
+  mystery:3, ancient:300, void:750, primal:1800, sacred:4500
+};
+document.querySelectorAll("input").forEach(i=>i.addEventListener("input",calc));
+
+function calc(){
+  const t1=+targetOne.value||0, t2=+targetBoth.value||0;
+  const ppe=+ptsPerEnergy.value||0, manual=+manualPts.value||0;
+  let total = manual + (+energy.value||0)*ppe;
+  for(const k in vals) total += (+$(k).value||0)*vals[k];
+
+  totalPts.textContent = Math.round(total).toLocaleString();
+  pOne.textContent = ((total/t1)*100||0).toFixed(1)+"%";
+  pBoth.textContent = ((total/t2)*100||0).toFixed(1)+"%";
+  barOne.style.width=Math.min(100,(total/t1)*100)+"%";
+  barBoth.style.width=Math.min(100,(total/t2)*100)+"%";
+}
+calc();
+</script>
+</body>
+</html>
